@@ -5,26 +5,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, FileUp, Link as LinkIcon, Loader2 } from "lucide-react";
+import { ArrowRight, FileUp, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function CoverLetterForm() {
   const [file, setFile] = useState<File | null>(null);
-  const [jobUrl, setJobUrl] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!file || !jobUrl) return;
+    if (!file || !jobDescription) return;
 
     setIsLoading(true);
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("job_url", jobUrl);
+    formData.append("job_description", jobDescription);
 
     try {
       // Simulating API call
@@ -34,7 +35,7 @@ export default function CoverLetterForm() {
       });
 
       // Here you would typically send the data to your API
-      console.log("Submitting:", { file, jobUrl });
+      console.log("Submitting:", { file, jobDescription });
       if (!response.ok) {
         toast({
           title: "Error",
@@ -58,7 +59,7 @@ export default function CoverLetterForm() {
       setIsLoading(false);
       // Reset form
       setFile(null);
-      setJobUrl("");
+      setJobDescription("");
     }
   };
 
@@ -94,22 +95,22 @@ export default function CoverLetterForm() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="job-url">Job Advertisement URL</Label>
+              <Label htmlFor="job-description">Job Description</Label>
               <div className="relative">
-                <Input
-                  id="job-url"
-                  type="url"
-                  placeholder="https://example.com/job-posting"
-                  value={jobUrl}
-                  onChange={(e) => setJobUrl(e.target.value)}
-                  className="pl-10"
+                <Textarea
+                  id="job-description"
+                  value={jobDescription}
+                  onChange={(e) => setJobDescription(e.target.value)}
                 />
-                <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               </div>
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full" disabled={!file || !jobUrl || isLoading}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={!file || !jobDescription || isLoading}
+            >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
