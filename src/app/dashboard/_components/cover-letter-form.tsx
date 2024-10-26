@@ -10,6 +10,10 @@ import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { Textarea } from "@/components/ui/textarea";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { countWords } from "@/utils/text-utils";
+import FileUpload from "./file-upload";
+import JobDescription from "./job-description";
 
 export default function CoverLetterForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -78,50 +82,13 @@ export default function CoverLetterForm() {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="cv-upload">Upload your CV</Label>
-                <div className="relative">
-                  <Input
-                    id="cv-upload"
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => document.getElementById("cv-upload")?.click()}
-                  >
-                    <FileUp className="w-4 h-4 mr-2" />
-                    {file ? file.name : "Choose file"}
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex flex-row  items-center">
-                  <Label htmlFor="job-description" className="pr-2">
-                    Job Description
-                  </Label>
-                  <QuestionMarkCircledIcon />
-                  {jdWordCount > 0 ? (
-                    <p className="pl-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Words: {jdWordCount}
-                    </p>
-                  ) : undefined}
-                </div>
-                <div className="relative">
-                  <Textarea
-                    id="job-description"
-                    value={jobDescription}
-                    onChange={(e) => {
-                      setJobDescription(e.target.value);
-                      setJdWordCount(countWords(e.target.value));
-                    }}
-                  />
-                </div>
-              </div>
+              <FileUpload file={file} setFile={setFile} />
+              <JobDescription
+                jdWordCount={jdWordCount}
+                jobDescription={jobDescription}
+                setJdWordCount={setJdWordCount}
+                setJobDescription={setJobDescription}
+              />
             </CardContent>
             <CardFooter>
               <Button
@@ -143,8 +110,3 @@ export default function CoverLetterForm() {
     </div>
   );
 }
-
-export const countWords = (text: string): number => {
-  const words = text.match(/\b\w+\b/g);
-  return words ? words.length : 0;
-};
