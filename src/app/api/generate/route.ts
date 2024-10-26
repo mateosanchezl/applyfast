@@ -1,29 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAndParsePdf } from "./helpers";
+import { validateAndParsePdf, validateFormData } from "./helpers";
 import { formDataSchema } from "./schemas";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  // Extraction
   const formData = await req.formData();
-
   const file = formData.get("file") as Blob;
   const job_description = formData.get("job_description");
-
-  const initialValidationResult = formDataSchema.safeParse({ file, job_description });
-
-  if (!initialValidationResult.success) {
-    return NextResponse.json(
-      { Error: initialValidationResult.error.errors[0].message },
-      { status: 400 }
-    );
-  }
 
   console.log("Initial Validation Success");
 
   try {
-    const fileText = await validateAndParsePdf(file);
-    console.log("Validated and parsed: ", fileText);
+    // Initial Val
+    validateFormData({ file, job_description });
+    // CV Parsing and Validation
+    const cvText = await validateAndParsePdf(file);
+
     return NextResponse.json(
-      { cv_text: fileText, job_description: job_description },
+      { cv_text: cvText, job_description: job_description },
       { status: 201 }
     );
   } catch (error: any) {

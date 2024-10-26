@@ -9,6 +9,7 @@ import { ArrowRight, FileUp, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { Textarea } from "@/components/ui/textarea";
+import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 
 export default function CoverLetterForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -34,13 +35,14 @@ export default function CoverLetterForm() {
         body: formData,
       });
 
+      const json = await response.json();
       // Here you would typically send the data to your API
       console.log("Submitting:", { file, jobDescription });
-      if (!response.ok) {
+      if (!response.ok || json.Error) {
         toast({
           title: "Error",
-          description: "Failed to generate cover letter. Please try again.",
-          variant: "destructive",
+          description: json.Error,
+          variant: "default",
         });
       } else {
         toast({
@@ -52,7 +54,7 @@ export default function CoverLetterForm() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to generate cover letter. Please try again.",
+        description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -95,7 +97,12 @@ export default function CoverLetterForm() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="job-description">Job Description</Label>
+              <div className="flex flex-row">
+                <Label htmlFor="job-description" className="pr-2">
+                  Job Description
+                </Label>
+                <QuestionMarkCircledIcon />
+              </div>
               <div className="relative">
                 <Textarea
                   id="job-description"

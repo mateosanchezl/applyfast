@@ -1,5 +1,5 @@
 import PDFParser from "pdf2json";
-import { cvTextSchema } from "./schemas";
+import { formDataSchema, wordCharCountSchema } from "./schemas";
 
 export const parsePdf = async (pdfFile: Blob): Promise<string> => {
   const arrayBuffer = await pdfFile.arrayBuffer();
@@ -42,7 +42,8 @@ export const validateAndParsePdf = async (pdfFile: Blob): Promise<string> => {
     let text = await parsePdf(pdfFile);
     text = cleanText(text);
 
-    const result = cvTextSchema.safeParse(text);
+    // Validate
+    const result = wordCharCountSchema.safeParse(text);
     if (!result.success) {
       throw new Error(result.error.errors[0].message);
     }
@@ -51,5 +52,18 @@ export const validateAndParsePdf = async (pdfFile: Blob): Promise<string> => {
   } catch (error: any) {
     // Catch parsing error
     throw new Error(`Validation and parsing failed: ${error.message}`);
+  }
+};
+
+export const validateFormData = ({
+  file,
+  job_description,
+}: {
+  file: Blob;
+  job_description: FormDataEntryValue | null;
+}) => {
+  const initialValidationResult = formDataSchema.safeParse({ file, job_description });
+  if (!initialValidationResult.success) {
+    throw new Error(initialValidationResult.error.errors[0].message);
   }
 };
