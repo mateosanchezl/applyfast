@@ -1,12 +1,5 @@
 import PDFParser from "pdf2json";
-
-const MAX_FILE_SIZE = 1 * 1024 * 1024;
-
-const MIN_WORD_COUNT = 100;
-const MAX_WORD_COUNT = 500;
-
-const MIN_CHAR_COUNT = 300;
-const MAX_CHAR_COUNT = 3000;
+import { cvTextSchema } from "./schemas";
 
 export const parsePdf = async (pdfFile: Blob): Promise<string> => {
   const arrayBuffer = await pdfFile.arrayBuffer();
@@ -15,7 +8,6 @@ export const parsePdf = async (pdfFile: Blob): Promise<string> => {
 
   return new Promise((resolve, reject) => {
     parser.on("pdfParser_dataError", (errData) => {
-      console.error(errData.parserError);
       reject(new Error("Failed to parse PDF"));
     });
 
@@ -44,41 +36,20 @@ export const countWords = (text: string): number => {
   return words ? words.length : 0;
 };
 
-export const validateAndParse = async (
-  pdfFile: Blob
-): Promise<string | { Error: string; status: number }> => {
-  if (pdfFile.type !== "application/pdf") {
-    throw new Error("Invalid file type. Only PDFs are allowed.");
+export const validateAndParsePdf = async (pdfFile: Blob): Promise<string> => {
+  try {
+    // Parse and clean pdf
+    let text = await parsePdf(pdfFile);
+    text = cleanText(text);
+
+    const result = cvTextSchema.safeParse(text);
+    if (!result.success) {
+      throw new Error(result.error.errors[0].message);
+    }
+
+    return text;
+  } catch (error: any) {
+    // Catch parsing error
+    throw new Error(`Validation and parsing failed: ${error.message}`);
   }
-
-  if (pdfFile.size > MAX_FILE_SIZE) {
-    throw new Error(`File size exceeds the limit of ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
-  }
-
-  // Parse and clean pdf
-  let text = await parsePdf(pdfFile);
-  text = cleanText(text);
-
-  // Check word and char limits
-  const words = countWords(text);
-  const chars = text.length;
-  console.log("COUNTING IN: ", text);
-  console.log("Total words: ", words);
-  console.log("Total chars: ", text.length);
-
-  if (words < MIN_WORD_COUNT) {
-    throw new Error(`Word count is lower than minimum of ${MIN_WORD_COUNT}`);
-  }
-
-  if (words > MAX_WORD_COUNT) {
-    throw new Error(
-      `Word count is higher than maximum of ${MAX_WORD_COUNT}, please remove any text that may not be useful in the creation of your cover letter.`
-    );
-  }
-
-  if (chars > MAX_CHAR_COUNT || chars < MIN_CHAR_COUNT) {
-    throw new Error(`Character count must be between ${MIN_CHAR_COUNT} and ${MAX_CHAR_COUNT}.`);
-  }
-
-  return text;
 };
